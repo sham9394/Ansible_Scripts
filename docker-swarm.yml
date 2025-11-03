@@ -1,0 +1,76 @@
+---
+- name: Install Docker on all nodes
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+- name: Initialize Docker Swarm on manager
+  hosts: manager
+  become: yes
+  tasks:
+    - name: Init swarm
+      command: docker swarm init --advertise-addr {{ ansible_host }}
+      register: swarm_init
+      failed_when: false
+
+    - name: Get join token
+      command: docker swarm join-token -q worker
+      register: worker_token
+
+    - name: Save token to file
+      copy:
+        dest: /tmp/swarm_token.txt
+        content: "{{ worker_token.stdout }}"
+
+- name: Join workers to swarm
+  hosts: workers
+  become: yes
+  tasks:
+    - name: Read token from manager
+      slurp:
+        src: /tmp/swarm_token.txt
+      delegate_to: manager
+      register: token_file
+
+    - name: Join worker node to swarm
+      command: docker swarm join --token {{ token_file.content | b64decode }} {{ hostvars['manager']['ansible_host'] }}:2377
+      register: join_output
+      failed_when: false
