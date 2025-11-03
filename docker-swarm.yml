@@ -47,7 +47,7 @@
   become: yes
   tasks:
     - name: Init swarm
-      command: docker swarm init --advertise-addr {{ ansible_host }}
+      command: docker swarm init --advertise-addr {{ ansible_swarm_private-ip_host }}
       register: swarm_init
       failed_when: false
 
@@ -71,6 +71,6 @@
       register: token_file
 
     - name: Join worker node to swarm
-      command: docker swarm join --token {{ token_file.content | b64decode }} {{ hostvars['manager']['ansible_host'] }}:2377
+      command: docker swarm join --token {{ token_file.content | b64decode }} {{ hostvars['manager']['ansible_swarm_private-ip_host'] }}:2377
       register: join_output
       failed_when: false

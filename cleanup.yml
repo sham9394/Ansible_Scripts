@@ -1,0 +1,39 @@
+---
+- name: Cleanup Docker Swarm and uninstall Docker
+  hosts: all
+  become: yes
+  tasks:
+    - name: Leave swarm (ignore if not part)
+      shell: docker swarm leave --force || true
+      ignore_errors: yes
+
+    - name: Stop and disable Docker
+      service:
+        name: docker
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Remove Docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: absent
+        purge: yes
+
+    - name: Remove residual directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/docker
+        - /var/lib/containerd
+        - /etc/docker
+      ignore_errors: yes
+
+    - name: Remove docker group (if exists)
+      shell: groupdel docker || true
+      ignore_errors: yes
