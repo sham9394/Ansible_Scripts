@@ -47,7 +47,7 @@
   become: yes
   tasks:
     - name: Init swarm
-      command: docker swarm init --advertise-addr {{ ansible_swarm_private-ip_host }}
+      command: docker swarm init --advertise-addr {{ ansible_swarm_host }}
       register: swarm_init
       failed_when: false
 
