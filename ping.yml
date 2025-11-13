@@ -1,0 +1,9 @@
+---
+- name: Check all connected workers
+  hosts: all
+  tasks:
+    - name: Check ping on all servers
+      ping:
+
+~                                                                                                                                                                             
+~             
