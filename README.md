@@ -5,6 +5,9 @@ This project installs Docker on multiple Ubuntu servers and configures Docker Sw
 ## 📦 Files
 - `inventory.ini` → define manager and worker servers
 - `docker-swarm.yml` → playbook for installing Docker and setting up Swarm
+- inventory file formate.
+[dbservers] (Hosts)
+db1(Instance Name) ansible_host=192.168.1.20 (Public IP) ansible_user=root/ubuntu
 
 ## 🧰 Requirements
 - Ansible installed on your control machine
